@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/main">
+        <file>resources/images/media-playback-pause.svg</file>
+        <file>resources/images/media-playback-start.svg</file>
+        <file>resources/images/user-trash.svg</file>
+        <file>resources/images/edit-copy.svg</file>
+        <file>resources/images/edit-clear.svg</file>
+        <file>resources/images/dialog-cancel.svg</file>
+        <file>resources/images/document-save.svg</file>
+    </qresource>
+</RCC>
