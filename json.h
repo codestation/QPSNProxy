@@ -27,7 +27,8 @@
 #include <QVariant>
 
 QVariantMap json_decode(const QString &jsonStr);
-QByteArray json_encode(const QVariantList &json);
 QByteArray json_encode(const QVariantMap &json);
+QByteArray json_encode(const QVariantList &json);
+
 
 #endif // JSON_H

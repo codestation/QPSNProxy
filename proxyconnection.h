@@ -22,7 +22,7 @@
 #define PROXYCONNECTION_H
 
 #include <QFile>
-#include <QFutureWatcher>
+#include <QSocketNotifier>
 #include <QTcpSocket>
 
 class ProxyConnection : public QTcpSocket
@@ -38,14 +38,17 @@ private slots:
     void closeConnections();
     void prepareFileTransfer();
     void fileReadyRead(int socket);
+    void closeFileConnection();
 
 private:
-    bool fileExists(const QString &path);
+    bool fileExists(const QString &path, qint64 start_range);
     void sendFile(const QString &path);
     qint64 transferFile();
 
+    QSocketNotifier *m_notifier;
     QTcpSocket *m_target;
     QFile *m_file;
+    qint64 m_end_range;
 };
 
 #endif // PROXYCONNECTION_H

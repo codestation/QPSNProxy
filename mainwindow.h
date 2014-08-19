@@ -24,6 +24,7 @@
 #include <QMainWindow>
 #include <QNetworkAccessManager>
 #include "psnrequest.h"
+#include "proxyserver.h"
 
 namespace Ui {
 class MainWindow;
@@ -68,6 +69,7 @@ private:
     Ui::MainWindow *ui;
     PSNRequest m_psn;
     QNetworkAccessManager m_manager;
+    ProxyServer *m_proxy;
 };
 
 #endif // MAINWINDOW_H

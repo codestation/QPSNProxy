@@ -23,10 +23,9 @@
 #include <QDebug>
 #include <QTcpSocket>
 
-ProxyServer::ProxyServer(qint16 port, QObject *parent) :
+ProxyServer::ProxyServer(QObject *parent) :
     QTcpServer(parent)
-{
-    listen(QHostAddress::Any, port);
+{    
 }
 
 

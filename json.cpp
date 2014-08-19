@@ -43,11 +43,11 @@ QByteArray json_encode(const QVariantMap &json)
 #include <QScriptEngine>
 #include <QScriptValueIterator>
 
-static QMap<QString, QVariant> decodeInner(QScriptValue object);
+static QVariantMap decodeInner(QScriptValue object);
 
-static QList<QVariant> decodeInnerToList(QScriptValue arrayValue)
+static QVariantList decodeInnerToList(QScriptValue arrayValue)
 {
-    QList<QVariant> list;
+    QVariantList list;
     QScriptValueIterator it(arrayValue);
     while (it.hasNext()) {
         it.next();
@@ -68,9 +68,9 @@ static QList<QVariant> decodeInnerToList(QScriptValue arrayValue)
     return list;
 }
 
-static QMap<QString, QVariant> decodeInner(QScriptValue object)
+static QVariantMap decodeInner(QScriptValue object)
 {
-    QMap<QString, QVariant> map;
+    QVariantMap map;
     QScriptValueIterator it(object);
     while (it.hasNext()) {
         it.next();
@@ -88,12 +88,52 @@ static QMap<QString, QVariant> decodeInner(QScriptValue object)
     return map;
 }
 
-QMap<QString, QVariant> json_decode(const QString &jsonStr)
+static QScriptValue encodeInner(const QVariantMap &map, QScriptEngine* engine)
+{
+    QScriptValue obj = engine->newObject();
+    QMapIterator<QString, QVariant> i(map);
+    while (i.hasNext()) {
+        i.next();
+        if (i.value().type() == QVariant::String)
+            obj.setProperty(i.key(), i.value().toString());
+        else if (i.value().type() == QVariant::Int)
+            obj.setProperty(i.key(), i.value().toInt());
+        else if (i.value().type() == QVariant::Double)
+            obj.setProperty(i.key(), i.value().toDouble());
+        else if (i.value().type() == QVariant::List)
+            obj.setProperty(i.key(), qScriptValueFromSequence(engine, i.value().toList()));
+        else if (i.value().type() == QVariant::Map)
+            obj.setProperty(i.key(), encodeInner(i.value().toMap(), engine));
+    }
+    return obj;
+}
+
+QVariantMap json_decode(const QString &jsonStr)
 {
     QScriptValue object;
     QScriptEngine engine;
     object = engine.evaluate("(" + jsonStr + ")");
     return decodeInner(object);
+}
+
+QByteArray json_encode(const QVariantMap &json)
+{
+    QScriptEngine engine;
+    engine.evaluate("function toString() { return JSON.stringify(this) }");
+
+    QScriptValue toString = engine.globalObject().property("toString");
+    QScriptValue obj = encodeInner(json, &engine);
+    return qPrintable(toString.call(obj).toString());
+}
+
+QByteArray json_encode(const QVariantList &json)
+{
+    QScriptEngine engine;
+    engine.evaluate("function toString() { return JSON.stringify(this) }");
+
+    QScriptValue toString = engine.globalObject().property("toString");
+    QScriptValue obj = qScriptValueFromSequence(&engine, json);
+    return qPrintable(toString.call(obj).toString());
 }
 
 #endif

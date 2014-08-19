@@ -27,7 +27,7 @@ class ProxyServer : public QTcpServer
 {
     Q_OBJECT
 public:
-    explicit ProxyServer(qint16 port, QObject *parent = 0);
+    explicit ProxyServer(QObject *parent = 0);
     void incomingConnection(qintptr handle);
 
 private slots:

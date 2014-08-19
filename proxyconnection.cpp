@@ -24,12 +24,11 @@
 #include <QDir>
 #include <QFileInfo>
 #include <QStandardPaths>
-#include <QSocketNotifier>
 
 static const QStringList methods = QStringList() << "GET" << "POST" << "HEAD" << "PUT" << "DELETE" << "TRACE" << "OPTIONS";
 
 ProxyConnection::ProxyConnection(QObject *parent) :
-    QTcpSocket(parent), m_target(NULL), m_file(NULL)
+    QTcpSocket(parent), m_notifier(NULL), m_target(NULL), m_file(NULL), m_end_range(-1)
 {
 }
 
@@ -87,6 +86,7 @@ void ProxyConnection::readProxyClient()
         else if(methods.contains(tokens[0]))
         {
             qDebug("%s %s %s", qPrintable(tokens[0]), qPrintable(tokens[1]), qPrintable(tokens[2]));
+
             // extract the host from the path
             QString host = tokens[1].mid(7);
             int pos = host.indexOf(QChar('/'));
@@ -103,10 +103,41 @@ void ProxyConnection::readProxyClient()
                 os << tokens[0] << " " << path << " " << tokens[2] << "\r\n" << headers;
 
                 // check if the requested file exist on disk
-                if(fileExists(path))
-                    connect(m_target, SIGNAL(readyRead()), this, SLOT(prepareFileTransfer()));
+                if(tokens[0] == "GET")
+                {
+                    QStringList header_list = headers.split(QRegExp("[\r\n]"));
+                    qint64 start_range = 0;
+
+                    foreach(const QString &header, header_list)
+                    {
+                        if(header.startsWith("Range: "))
+                        {
+                            QRegExp valid_input("Range: bytes=(\\d+)-(\\d*)");
+                            if(valid_input.indexIn(header) != -1)
+                            {
+                                start_range = valid_input.cap(1).toLongLong();
+                                m_end_range = valid_input.cap(2).toLongLong();
+                                if(m_end_range == 0)
+                                    m_end_range = -1;
+                            }
+                        }
+                    }
+                    if(fileExists(path, start_range))
+                    {
+                        qDebug() << "Package found in cache";
+                        connect(m_target, SIGNAL(readyRead()), this, SLOT(prepareFileTransfer()));
+                    }
+                    else
+                    {
+                        qDebug() << "Package not found in cache";
+                        connect(m_target, SIGNAL(readyRead()), this, SLOT(receiveData()));
+                    }
+                }
                 else
+                {
+                    qDebug() << "Package not found in cache";
                     connect(m_target, SIGNAL(readyRead()), this, SLOT(receiveData()));
+                }
 
                 // delete the remote socket on disconnection
                 connect(m_target, SIGNAL(disconnected()), m_target, SLOT(deleteLater()));
@@ -160,8 +191,9 @@ void ProxyConnection::prepareFileTransfer()
         if(header == "\r\n")
         {
             socket->close();
-            QSocketNotifier *notifier = new QSocketNotifier(m_file->handle(), QSocketNotifier::Read);
-            connect(notifier, SIGNAL(activated(int)), this, SLOT(fileReadyRead(int)));
+            m_notifier = new QSocketNotifier(m_file->handle(), QSocketNotifier::Read);
+            connect(m_notifier, SIGNAL(activated(int)), this, SLOT(fileReadyRead(int)));
+            connect(this, SIGNAL(disconnected()), this, SLOT(closeFileConnection()));
             break;
         }
     }
@@ -174,17 +206,36 @@ void ProxyConnection::prepareFileTransfer()
  */
 void ProxyConnection::fileReadyRead(int)
 {
-    char buffer[2048];
+    char buffer[16 * 1024];
 
-    int read = m_file->read(buffer, sizeof(buffer));
-    if(read > 0)
+    int read_size;
+    if(m_end_range != -1 && m_file->pos() + static_cast<int>(sizeof(buffer)) > m_end_range)
+        read_size = m_end_range - m_file->pos();
+    else
+        read_size = sizeof(buffer);
+
+    int read = m_file->read(buffer, read_size);
+    if(read > 0 && read_size == sizeof(buffer))
         write(buffer, read);
     else
     {
         m_file->close();
         delete m_file;
-        QSocketNotifier *notifier = reinterpret_cast<QSocketNotifier *>(sender());
-        notifier->setEnabled(false);
+        m_file = NULL;
+        m_notifier->setEnabled(false);
+        close();
+    }
+}
+
+void ProxyConnection::closeFileConnection()
+{
+    if(m_file !=NULL)
+    {
+        m_file->close();
+        delete m_file;
+        m_file = NULL;
+        m_notifier->setEnabled(false);
+        m_notifier->deleteLater();
         close();
     }
 }
@@ -195,7 +246,7 @@ void ProxyConnection::fileReadyRead(int)
  * @param path URL path of the file
  * @return true of the file was opened, false otherwise
  */
-bool ProxyConnection::fileExists(const QString &path)
+bool ProxyConnection::fileExists(const QString &path, qint64 start_range)
 {
     QString data_path = DownloadItem::getPackageDir();
     QFileInfo info(QUrl(path).path());
@@ -208,6 +259,7 @@ bool ProxyConnection::fileExists(const QString &path)
             delete m_file;
             return false;
         }
+        m_file->seek(start_range);
         return true;
     }
     return false;

@@ -78,6 +78,13 @@ MainWindow::MainWindow(QWidget *parent) :
     QByteArray data = loadEntitlements();
     if(!data.isEmpty())
         loadGameList(data);
+
+    m_proxy = new ProxyServer;
+    qint16 port = QSettings().value("proxyPort", 8888).toInt();
+    if(!m_proxy->listen(QHostAddress::Any, port))
+    {
+        QMessageBox::warning(this, "QPSNProxy", tr("Cannot bind to port %1").arg(port), QMessageBox::Ok);
+    }
 }
 
 void MainWindow::getLoginStatus(int status_code, QString message)
@@ -285,6 +292,7 @@ void MainWindow::updateStatus(QString message)
 MainWindow::~MainWindow()
 {
     delete ui;
+    delete m_proxy;
 }
 
 void MainWindow::deleteCookies()

@@ -24,7 +24,6 @@
 #include <QDebug>
 #include <QLibraryInfo>
 #include <QTranslator>
-#include "proxyserver.h"
 
 int main(int argc, char *argv[])
 {
@@ -54,7 +53,6 @@ int main(int argc, char *argv[])
     system_translator.load("qt_" + locale, QLibraryInfo::location(QLibraryInfo::TranslationsPath));
     app.installTranslator(&system_translator);
 
-    ProxyServer server(8888);
     MainWindow w;
     w.show();
 
