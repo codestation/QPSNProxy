@@ -37,6 +37,7 @@ private slots:
     void receiveData();
     void closeConnections();
     void prepareFileTransfer();
+    void continueTransfer(qint64 bytes_written);
     void fileReadyRead(int socket);
     void closeFileConnection();
 

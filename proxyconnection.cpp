@@ -135,7 +135,6 @@ void ProxyConnection::readProxyClient()
                 }
                 else
                 {
-                    qDebug() << "Package not found in cache";
                     connect(m_target, SIGNAL(readyRead()), this, SLOT(receiveData()));
                 }
 
@@ -193,10 +192,16 @@ void ProxyConnection::prepareFileTransfer()
             socket->close();
             m_notifier = new QSocketNotifier(m_file->handle(), QSocketNotifier::Read);
             connect(m_notifier, SIGNAL(activated(int)), this, SLOT(fileReadyRead(int)));
+            connect(this, SIGNAL(bytesWritten(qint64)), this, SLOT(continueTransfer(qint64)));
             connect(this, SIGNAL(disconnected()), this, SLOT(closeFileConnection()));
             break;
         }
     }
+}
+
+void ProxyConnection::continueTransfer(qint64)
+{
+    m_notifier->setEnabled(true);
 }
 
 /**
@@ -206,7 +211,9 @@ void ProxyConnection::prepareFileTransfer()
  */
 void ProxyConnection::fileReadyRead(int)
 {
-    char buffer[16 * 1024];
+    char buffer[2 * 1024];
+
+    QSocketNotifier* notifier = reinterpret_cast<QSocketNotifier *>(sender());
 
     int read_size;
     if(m_end_range != -1 && m_file->pos() + static_cast<int>(sizeof(buffer)) > m_end_range)
@@ -215,16 +222,17 @@ void ProxyConnection::fileReadyRead(int)
         read_size = sizeof(buffer);
 
     int read = m_file->read(buffer, read_size);
-    if(read > 0 && read_size == sizeof(buffer))
+
+    if(read > 0 && read_size == sizeof(buffer) && isValid())
         write(buffer, read);
     else
     {
         m_file->close();
         delete m_file;
         m_file = NULL;
-        m_notifier->setEnabled(false);
         close();
     }
+    notifier->setEnabled(false);
 }
 
 void ProxyConnection::closeFileConnection()

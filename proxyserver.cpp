@@ -39,6 +39,7 @@ void ProxyServer::incomingConnection(qintptr handle)
 
 void ProxyServer::discardClient()
 {
+    qDebug() << "Client disconnected";
     ProxyConnection* socket = (ProxyConnection*)sender();
     socket->deleteLater();
 }

@@ -49,7 +49,7 @@ FORMS    += mainwindow.ui downloaditem.ui \
 RESOURCES += \
     qpsnres.qrc
 
-QPSNPROXY_GIT_VERSION=$$system(git describe --tags)
+QPSNPROXY_GIT_VERSION=$$system(git describe --tags --always)
 isEmpty(QPSNPROXY_GIT_VERSION) {
     DEFINES += QPSNPROXY_VER=\\\"$$VERSION\\\"
 } else {
