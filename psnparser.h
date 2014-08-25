@@ -54,6 +54,13 @@ public:
     bool onPlus;
 };
 
-QList<TitleInfo> parsePsnJson(const QMap<QString,QVariant> &json);
+struct Notification
+{
+    QString contentID;
+    QString status;
+};
+
+QList<TitleInfo> parsePsnJson(const QVariantMap &json);
+QList<Notification> parseNotificationJson(const QVariantList &json);
 
 #endif // PSNPARSER_H

@@ -21,7 +21,7 @@
 #include "psnparser.h"
 #include <QDebug>
 
-QList<TitleInfo> parsePsnJson(const QMap<QString,QVariant> &json)
+QList<TitleInfo> parsePsnJson(const QVariantMap &json)
 {
     QList<TitleInfo> item_list;
 
@@ -32,11 +32,11 @@ QList<TitleInfo> parsePsnJson(const QMap<QString,QVariant> &json)
     }
 
     qDebug() << "Total entitlements: " << total_results;
-    QList<QVariant> entitlements = json["entitlements"].toList();
+    QVariantList entitlements = json["entitlements"].toList();
 
-    for(QList<QVariant>::const_iterator it = entitlements.begin(); it != entitlements.end(); ++it)
+    for(QVariantList::const_iterator it = entitlements.begin(); it != entitlements.end(); ++it)
     {
-        QMap<QString, QVariant> entitlement = it->toMap();
+        QVariantMap entitlement = it->toMap();
 
         QString contentId;
         QString game_name;
@@ -50,7 +50,7 @@ QList<TitleInfo> parsePsnJson(const QMap<QString,QVariant> &json)
             contentId = entitlement["product_id"].toString();
             QMap<QString,QVariant> drm_def = entitlement["drm_def"].toMap();
             game_name = drm_def["contentName"].toString();
-            QList<QVariant> drmContents = drm_def["drmContents"].toList();
+            QVariantList drmContents = drm_def["drmContents"].toList();
             QMap<QString,QVariant> drmContent = drmContents[0].toMap();
             package_size = drmContent["contentSize"].toLongLong();
             package_url = drmContent["contentUrl"].toString();
@@ -83,7 +83,7 @@ QList<TitleInfo> parsePsnJson(const QMap<QString,QVariant> &json)
             contentId = entitlement["product_id"].toString();
             game_name = game_meta["name"].toString();
             plus = entitlement.contains("inactive_date");
-            QList<QVariant> entitlement_attributes = entitlement["entitlement_attributes"].toList();
+            QVariantList entitlement_attributes = entitlement["entitlement_attributes"].toList();
             QMap<QString,QVariant> entitlement_attribute = entitlement_attributes[0].toMap();
             package_size = entitlement_attribute["package_file_size"].toLongLong();
             package_url = entitlement_attribute["reference_package_url"].toString();
@@ -99,6 +99,22 @@ QList<TitleInfo> parsePsnJson(const QMap<QString,QVariant> &json)
     }
 
     qSort(item_list.begin(), item_list.end(), TitleInfo::lessThan);
+
+    return item_list;
+}
+
+QList<Notification> parseNotificationJson(const QVariantList &json)
+{
+    QList<Notification> item_list;
+
+    for(QVariantList::const_iterator it = json.begin(); it != json.end(); ++it)
+    {
+        QVariantMap notification = it->toMap();
+        Notification notif;
+        notif.contentID = notification["contentId"].toString();
+        notif.status = notification["status"].toString();
+        item_list.append(notif);
+    }
 
     return item_list;
 }

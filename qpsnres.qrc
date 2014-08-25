@@ -6,6 +6,8 @@
         <file>resources/images/edit-copy.svg</file>
         <file>resources/images/edit-clear.svg</file>
         <file>resources/images/dialog-cancel.svg</file>
-        <file>resources/images/document-save.svg</file>
+        <file>resources/images/appointment-new.svg</file>
+        <file>resources/images/dialog-ok-apply.svg</file>
+        <file>resources/images/folder-download.svg</file>
     </qresource>
 </RCC>

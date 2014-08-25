@@ -59,9 +59,16 @@ static const QString queryUrl("https://store.sonyentertainmentnetwork.com/kamaji
                               "00_09_000/gateway/store/v1/users/me/internal_entitlements?"
                               "start=%1&size=%2&fields=game_meta,drm_def");
 
-static const QString requestDownloadUrl("https://store.sonyentertainmentnetwork.com/kamaji/api/chihiro/00_09_000/user/notification/download");
+static const QString requestDownloadUrl("https://store.sonyentertainmentnetwork.com/kamaji/api/chihiro/"
+                                        "00_09_000/user/notification/download");
 
-static const QString requestCancelUrl("https://store.sonyentertainmentnetwork.com/kamaji/api/chihiro/00_09_000/user/notification/download/status");
+static const QString requestCancelUrl("https://store.sonyentertainmentnetwork.com/kamaji/api/chihiro/"
+                                      "00_09_000/user/notification/download/status");
+
+static const QString requestDownloadStatusUrl("https://store.sonyentertainmentnetwork.com/kamaji/api/"
+                                              "chihiro/00_09_000/user/notification/download/status/?"
+                                              "status=notstarted&status=stopped&status=waitfordownload&"
+                                              "platformString=%1&size=%2");
 
 static const QString jsonFilename("listing.json");
 
@@ -104,8 +111,8 @@ void PSNRequest::receiveLoginResponse()
         return;
     }
     QByteArray data = m_reply->readAll();
-    QMap<QString,QVariant> json = json_decode(data);
-    QMap<QString,QVariant> store_header = json["header"].toMap();
+    QVariantMap json = json_decode(data);
+    QVariantMap store_header = json["header"].toMap();
     QString status_code = store_header["status_code"].toString();
     QString message_key = store_header["message_key"].toString();
 
@@ -114,7 +121,7 @@ void PSNRequest::receiveLoginResponse()
 
     if(ok && code == 0)
     {
-        QMap<QString,QVariant> store_data = json["data"].toMap();
+        QVariantMap store_data = json["data"].toMap();
         QString storeRoot = store_data["root_url"].toString();
         qDebug() << "Got store root: " << storeRoot;
         emit storeRootUrlReceived(storeRoot);
@@ -262,8 +269,8 @@ void PSNRequest::receiveRootUrlReply()
     }
 
     QByteArray data = m_reply->readAll();
-    QMap<QString,QVariant> json = json_decode(data);
-    QMap<QString,QVariant> store_data = json["data"].toMap();
+    QVariantMap json = json_decode(data);
+    QVariantMap store_data = json["data"].toMap();
     QString storeRoot = store_data["root_url"].toString();
     qDebug() << "Got store root: " << storeRoot;
     emit storeRootUrlReceived(storeRoot);
@@ -291,14 +298,14 @@ void PSNRequest::receiveUserInfo()
 
     QByteArray data = m_reply->readAll();
     qDebug() << "Received user data, " << data.size() << " bytes";
-    QMap<QString,QVariant> json = json_decode(data);
-    QMap<QString,QVariant> header = json["header"].toMap();
+    QVariantMap json = json_decode(data);
+    QVariantMap header = json["header"].toMap();
 
     bool ok;
     int code = header["status_code"].toInt(&ok);
     if(ok && code == 0)
     {
-        QMap<QString,QVariant> user_data = json["data"].toMap();
+        QVariantMap user_data = json["data"].toMap();
         QString onlineId = user_data["onlineId"].toString();
         QString signId = user_data["signInId"].toString();
         qDebug() << "Got online ID: " << onlineId << ", sign ID: " << signId;
@@ -312,7 +319,8 @@ void PSNRequest::receiveUserInfo()
 
 void PSNRequest::requestDownloadList()
 {
-    QUrl query_url(QString(queryUrl).arg("0", "10240"));
+    int size = QSettings().value("maxTitles", 10240).toInt();
+    QUrl query_url(QString(queryUrl).arg(0, size));
 
     QNetworkRequest request(query_url);
     request.setHeader(QNetworkRequest::UserAgentHeader, userAgent);
@@ -403,8 +411,8 @@ void PSNRequest::receiveRequestResponse()
     QNetworkReply *reply = reinterpret_cast<QNetworkReply *>(sender());
     QByteArray data = reply->readAll();
 
-    QMap<QString,QVariant> json = json_decode(data);
-    QMap<QString,QVariant> store_header = json["header"].toMap();
+    QVariantMap json = json_decode(data);
+    QVariantMap store_header = json["header"].toMap();
     QString status_code = store_header["status_code"].toString();
     QString message_key = store_header["message_key"].toString();
 
@@ -413,4 +421,49 @@ void PSNRequest::receiveRequestResponse()
 
     qDebug() << "Request status: " << status_code << ", message: " << message_key;
     emit requestStatusReceived(code, message_key);
+}
+
+void PSNRequest::requestDownloadStatus(const QString &platform)
+{
+    int maxChecks = QSettings().value("maxChecks", 1000).toInt();
+    QNetworkRequest request(requestDownloadStatusUrl.arg(platform, QString::number(maxChecks)));
+    request.setHeader(QNetworkRequest::UserAgentHeader, userAgent);
+    qDebug() << "Requesting download status GET";
+    m_reply = m_manager.get(request);
+
+    connect(m_reply, SIGNAL(error(QNetworkReply::NetworkError)), this, SLOT(setLastError(QNetworkReply::NetworkError)));
+    connect(m_reply, SIGNAL(finished()), this, SLOT(receiveStatusList()));
+    connect(m_reply, SIGNAL(finished()), m_reply, SLOT(deleteLater()));
+}
+
+void PSNRequest::receiveStatusList()
+{
+    if(m_error != QNetworkReply::NoError)
+    {
+        qDebug() << "PSNRequest::receiveStatusList error: " << m_error;
+        //emit networkErrorReceived(m_reply->errorString());
+        return;
+    }
+
+    QNetworkReply *reply = reinterpret_cast<QNetworkReply *>(sender());
+    QByteArray data = reply->readAll();
+
+    QVariantMap json = json_decode(data);
+    QVariantMap status_header = json["header"].toMap();
+    QString status_code = status_header["status_code"].toString();
+    QString message_key = status_header["message_key"].toString();
+
+    bool ok = false;
+    int code = status_code.toInt(&ok, 16);
+
+    qDebug() << "Request status: " << status_code << ", message: " << message_key;
+
+    if(code == 0)
+    {
+        QVariantMap status_data = json["data"].toMap();
+        QVariantList notification_list = status_data["notifications"].toList();
+        emit statusReceived(notification_list);
+    }
+    else
+        emit requestStatusReceived(code, message_key);
 }

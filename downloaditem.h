@@ -45,7 +45,8 @@ public:
     void downloadGameIcon();
     int status();
 
-    static const QString &getPackageDir();
+    void setWaitingIcon(bool set);
+    static QString getPackageDir();
     static bool lessThan(const DownloadItem *s1, const DownloadItem *s2);
 
     QNetworkAccessManager *m_manager;

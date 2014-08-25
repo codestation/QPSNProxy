@@ -35,7 +35,7 @@ class PSNRequest : public QObject
 {
     Q_OBJECT
 public:
-    enum RequestStatus {SUCCESS, AUTH_REQUIRED = 0x6, NEED_REFRESH = 0x99};
+    enum RequestStatus {SUCCESS, SESSION_EXPIRED = 0x5, AUTH_REQUIRED = 0x6, NEED_REFRESH = 0x99};
 
     explicit PSNRequest(QObject *parent = 0);
     ~PSNRequest();
@@ -48,6 +48,7 @@ public:
     void requestUserInfo();
     void requestGameDownload(const QString &contentId, const QString &platform);
     void requestGameCancel(const QString &contentId, const QString &platform);
+    void requestDownloadStatus(const QString &platform);
 
 signals:    
     void downloadListReceived(QByteArray);
@@ -56,6 +57,7 @@ signals:
     void requestStatusReceived(int, QString);
     void loginSucceeded();
     void networkErrorReceived(QString);
+    void statusReceived(QVariantList);
     void storeRootUrlReceived(QString);
     void userInfoReceived(QString, QString);
     void userInfoRequestFail();
@@ -67,6 +69,7 @@ private slots:
     void receiveMetadataResponse();
     void receiveRequestResponse();
     void receiveRootUrlReply();
+    void receiveStatusList();
     void receiveUserInfo();
     void requestOauthLogin();
     void requestStoreLogin();

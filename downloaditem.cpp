@@ -28,6 +28,7 @@
 #include <QFileInfo>
 #include <QMessageBox>
 #include <QNetworkAccessManager>
+#include <QSettings>
 #include <QStandardPaths>
 
 static const QString imageUrl("%1/%2/image?_version=00_09_000&platform=chihiro&w=124&h=124&bg_color=000000&opacity=100");
@@ -92,15 +93,17 @@ void DownloadItem::init()
 
     m_startOffset = m_pkginfo.exists() ? m_pkginfo.size() : 0;
     updateDataTransferProgress(0, m_info.packageSize - m_startOffset);
+    if(m_startOffset == m_info.packageSize)
+        ui->downloadButton->setIcon(QIcon(":/main/resources/images/dialog-ok-apply.svg"));
 
     if(m_startOffset > 0)
         ui->deleteButton->setEnabled(true);
 }
 
-const QString &DownloadItem::getPackageDir()
+QString DownloadItem::getPackageDir()
 {
     static const QString constant = QStandardPaths::writableLocation(QStandardPaths::DataLocation) + QDir::separator() + QLatin1String("packages");
-    return constant;
+    return QSettings().value("downloadPath", constant).toString();
 }
 
 DownloadItem::~DownloadItem()
@@ -325,4 +328,12 @@ int DownloadItem::status()
            return 4; // paused
    else
        return 2; //downloading
+}
+
+void DownloadItem::setWaitingIcon(bool set)
+{
+    if(set)
+        ui->requestDownloadButton->setIcon(QIcon(":/main/resources/images/appointment-new.svg"));
+    else
+        ui->requestDownloadButton->setIcon(QIcon(":/main/resources/images/folder-download.svg"));
 }

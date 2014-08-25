@@ -172,7 +172,7 @@
            </property>
            <property name="icon">
             <iconset resource="qpsnres.qrc">
-             <normaloff>:/main/resources/images/edit-copy.svg</normaloff>:/main/resources/images/edit-copy.svgz</iconset>
+             <normaloff>:/main/resources/images/edit-copy.svg</normaloff>:/main/resources/images/edit-copy.svg</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -192,7 +192,7 @@
            </property>
            <property name="icon">
             <iconset resource="qpsnres.qrc">
-             <normaloff>:/main/resources/images/media-playback-start.svg</normaloff>:/main/resources/images/media-playback-start.svgz</iconset>
+             <normaloff>:/main/resources/images/media-playback-start.svg</normaloff>:/main/resources/images/media-playback-start.svg</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -215,7 +215,24 @@
            </property>
            <property name="icon">
             <iconset resource="qpsnres.qrc">
-             <normaloff>:/main/resources/images/user-trash.svg</normaloff>:/main/resources/images/user-trash.svgz</iconset>
+             <normaloff>:/main/resources/images/user-trash.svg</normaloff>:/main/resources/images/user-trash.svg</iconset>
+           </property>
+           <property name="iconSize">
+            <size>
+             <width>32</width>
+             <height>32</height>
+            </size>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QPushButton" name="requestDownloadButton">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="qpsnres.qrc">
+             <normaloff>:/main/resources/images/folder-download.svg</normaloff>:/main/resources/images/folder-download.svg</iconset>
            </property>
            <property name="iconSize">
             <size>
@@ -237,13 +254,13 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>146</width>
+           <width>200</width>
            <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>146</width>
+           <width>200</width>
            <height>16777215</height>
           </size>
          </property>

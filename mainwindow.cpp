@@ -20,6 +20,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "configdialog.h"
 #include "downloaditem.h"
 #include "authdialog.h"
 #include "psnparser.h"
@@ -33,10 +34,12 @@
 #include <QSettings>
 #include <QStandardPaths>
 #include <QThreadPool>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
+    ui(new Ui::MainWindow),
+    m_proxy(NULL)
 {
     ui->setupUi(this);
 
@@ -58,6 +61,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&m_psn, &PSNRequest::loginStatusReceived, this, &MainWindow::getLoginStatus);
     connect(&m_psn, &PSNRequest::downloadListReceived, this, &MainWindow::getDownloadList);
     connect(&m_psn, &PSNRequest::networkErrorReceived, this, &MainWindow::updateStatus);
+    connect(&m_psn, &PSNRequest::statusReceived, this, &MainWindow::processStatusList);
 
     connect(ui->consoleComboBox, SIGNAL(currentIndexChanged(int)), this, SLOT(onComboChanged(int)));
     connect(ui->plusCheckBox, SIGNAL(clicked(bool)), this, SLOT(onCheckChanged(bool)));
@@ -69,6 +73,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionClear_download_list_cache, SIGNAL(triggered()), this, SLOT(deleteDownloadList()));
     connect(ui->actionClear_PSN_login_cookies, SIGNAL(triggered()), this, SLOT(deleteCookies()));
     connect(ui->actionClear_thumbnail_cache, SIGNAL(triggered()), this, SLOT(deleteThumbnailCache()));
+    connect(ui->actionOptions, SIGNAL(triggered()), SLOT(openOptions()));
 
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
     connect(ui->actionAbout_Qt, SIGNAL(triggered()), this, SLOT(showAboutQt()));
@@ -79,12 +84,62 @@ MainWindow::MainWindow(QWidget *parent) :
     if(!data.isEmpty())
         loadGameList(data);
 
-    m_proxy = new ProxyServer;
-    qint16 port = QSettings().value("proxyPort", 8888).toInt();
-    if(!m_proxy->listen(QHostAddress::Any, port))
+    if(settings.value("autostartProxy", true).toBool())
     {
-        QMessageBox::warning(this, "QPSNProxy", tr("Cannot bind to port %1").arg(port), QMessageBox::Ok);
+        m_proxy = new ProxyServer;
+        qint16 port = settings.value("proxyPort", 8888).toInt();
+        if(!m_proxy->listen(QHostAddress::Any, port))
+        {
+            QMessageBox::warning(this, "QPSNProxy", tr("Cannot bind to port %1").arg(port), QMessageBox::Ok);
+        }
     }
+
+    bool autocheck = settings.value("autoCheck", true).toBool();
+    if(autocheck)
+    {
+        QTimer *timer = new QTimer(this);
+        connect(timer, SIGNAL(timeout()), this, SLOT(updateDownloadStatus()));
+        timer->deleteLater();
+        timer->start(30000);
+    }
+}
+
+void MainWindow::updateDownloadStatus()
+{
+    m_psn.requestDownloadStatus("vita");
+}
+
+void MainWindow::processStatusList(QVariantList status_list)
+{
+    QMap<QString, QString> status_map;
+
+    // convert to map
+    foreach(const QVariant &item, status_list)
+    {
+        QVariantMap item_map = item.toMap();
+        QString key = item_map["contentId"].toString();
+        status_map[key] = item_map["status"].toString();
+    }
+    int row_count = ui->downloadTableWidget->rowCount();
+    for(int i = 0; i < row_count; i++)
+    {
+        DownloadItem *item = (DownloadItem*) ui->downloadTableWidget->cellWidget(i, 0);
+        if(status_map.find(item->getInfo().contentID) != status_map.end())
+        {
+            item->setWaitingIcon(true);
+        }
+        else
+        {
+            item->setWaitingIcon(false);
+        }
+
+    }
+}
+
+void MainWindow::openOptions()
+{
+    ConfigDialog config;
+    config.exec();
 }
 
 void MainWindow::getLoginStatus(int status_code, QString message)
@@ -94,7 +149,7 @@ void MainWindow::getLoginStatus(int status_code, QString message)
         updateStatus(tr("Downloading list using previous session..."));
         m_psn.requestDownloadList();
     }
-    else if(status_code == PSNRequest::NEED_REFRESH)
+    else if(status_code == PSNRequest::NEED_REFRESH || status_code == PSNRequest::SESSION_EXPIRED)
     {
         updateStatus(tr("Recovering previous session..."));
         m_psn.loginRefresh();
@@ -292,7 +347,8 @@ void MainWindow::updateStatus(QString message)
 MainWindow::~MainWindow()
 {
     delete ui;
-    delete m_proxy;
+    if(m_proxy)
+        delete m_proxy;
 }
 
 void MainWindow::deleteCookies()

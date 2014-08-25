@@ -58,6 +58,9 @@ private slots:
     void deleteCookies();
     void showAboutQt();
     void showAboutDialog();
+    void openOptions();
+    void updateDownloadStatus();
+    void processStatusList(QVariantList status_list);
 
 private:
     void updateLoginStatus();

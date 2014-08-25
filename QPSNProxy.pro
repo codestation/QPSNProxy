@@ -29,7 +29,8 @@ SOURCES += main.cpp\
     utils.cpp \
     authdialog.cpp \
     proxyserver.cpp \
-    proxyconnection.cpp
+    proxyconnection.cpp \
+    configdialog.cpp
 
 HEADERS  += mainwindow.h \
     downloaditem.h \
@@ -41,10 +42,12 @@ HEADERS  += mainwindow.h \
     utils.h \
     authdialog.h \
     proxyserver.h \
-    proxyconnection.h
+    proxyconnection.h \
+    configdialog.h
 
 FORMS    += mainwindow.ui downloaditem.ui \
-    authdialog.ui
+    authdialog.ui \
+    configdialog.ui
 
 RESOURCES += \
     qpsnres.qrc

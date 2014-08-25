@@ -201,11 +201,14 @@
     <property name="title">
      <string>Setti&amp;ngs</string>
     </property>
+    <addaction name="actionOptions"/>
+    <addaction name="separator"/>
     <addaction name="actionOpen_package_directory"/>
     <addaction name="actionClear_downloaded_packages"/>
     <addaction name="actionClear_PSN_login_cookies"/>
     <addaction name="actionClear_thumbnail_cache"/>
     <addaction name="actionClear_download_list_cache"/>
+    <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -267,6 +270,11 @@
   <action name="actionQuit">
    <property name="text">
     <string>&amp;Quit</string>
+   </property>
+  </action>
+  <action name="actionOptions">
+   <property name="text">
+    <string>Options</string>
    </property>
   </action>
  </widget>
