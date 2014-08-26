@@ -320,7 +320,7 @@ void PSNRequest::receiveUserInfo()
 void PSNRequest::requestDownloadList()
 {
     int size = QSettings().value("maxTitles", 10240).toInt();
-    QUrl query_url(QString(queryUrl).arg(0, size));
+    QUrl query_url(QString(queryUrl).arg(QString::number(0), QString::number(size)));
 
     QNetworkRequest request(query_url);
     request.setHeader(QNetworkRequest::UserAgentHeader, userAgent);
