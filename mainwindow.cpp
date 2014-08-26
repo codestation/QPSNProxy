@@ -77,6 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(showAboutDialog()));
     connect(ui->actionAbout_Qt, SIGNAL(triggered()), this, SLOT(showAboutQt()));
+    connect(ui->actionQuit, SIGNAL(triggered()), this, SLOT(close()));
 
     QThreadPool::globalInstance()->setMaxThreadCount(4);
 
@@ -90,17 +91,8 @@ MainWindow::MainWindow(QWidget *parent) :
         qint16 port = settings.value("proxyPort", 8888).toInt();
         if(!m_proxy->listen(QHostAddress::Any, port))
         {
-            QMessageBox::warning(this, "QPSNProxy", tr("Cannot bind to port %1").arg(port), QMessageBox::Ok);
+            QMessageBox::warning(this, tr("Information"), tr("Cannot bind to port %1").arg(port), QMessageBox::Ok);
         }
-    }
-
-    bool autocheck = settings.value("autoCheck", true).toBool();
-    if(autocheck)
-    {
-        QTimer *timer = new QTimer(this);
-        connect(timer, SIGNAL(timeout()), this, SLOT(updateDownloadStatus()));
-        timer->deleteLater();
-        timer->start(30000);
     }
 }
 

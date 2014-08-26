@@ -270,14 +270,20 @@ void DownloadItem::packageComplete()
     {
         QByteArray data = m_reply->readAll();
         m_file->write(data);
-        m_startOffset = m_info.packageSize;
+        m_startOffset = m_info.packageSize;        
         qDebug() << "Download complete: " << m_info.gameName;
     }
     else
     {
         qDebug() << "Download interrupted for " << m_info.gameName << ": " << m_downloaded << " bytes";
     }
-    resetDownloadState();
+
+    m_file->close();
+    delete m_file;
+    m_file = NULL;
+    m_downloading = false;
+    ui->downloadButton->setIcon(QIcon(":/main/resources/images/dialog-ok-apply.svg"));
+    ui->deleteButton->setEnabled(true);
 }
 
 void DownloadItem::resetDownloadState()
@@ -293,7 +299,7 @@ void DownloadItem::resetDownloadState()
 
 void DownloadItem::deletePackage()
 {
-    int ret = QMessageBox::warning(this, "QPSNProxy",
+    int ret = QMessageBox::warning(this, tr("Confirmation"),
                                     tr("Are you sure to delete this downloaded package?"),
                                     QMessageBox::Ok | QMessageBox::Cancel,
                                     QMessageBox::Cancel);
@@ -305,14 +311,16 @@ void DownloadItem::deletePackage()
             {
                 m_startOffset = 0;
                 updateDataTransferProgress(0, m_info.packageSize);
+                ui->downloadButton->setIcon(QIcon(":/main/resources/images/media-playback-start.svg"));
             }
             else
-                QMessageBox::warning(this, "QPSNProxy", tr("Cannot delete the package file"), QMessageBox::Ok);
+                QMessageBox::warning(this, tr("Warning"), tr("Cannot delete the package file"), QMessageBox::Ok);
         }
         else
         {
             m_startOffset = 0;
             updateDataTransferProgress(0, m_info.packageSize);
+            ui->downloadButton->setIcon(QIcon(":/main/resources/images/media-playback-start.svg"));
         }
     }
 }
@@ -330,10 +338,10 @@ int DownloadItem::status()
        return 2; //downloading
 }
 
-void DownloadItem::setWaitingIcon(bool set)
+void DownloadItem::setWaitingIcon(bool )
 {
-    if(set)
-        ui->requestDownloadButton->setIcon(QIcon(":/main/resources/images/appointment-new.svg"));
-    else
-        ui->requestDownloadButton->setIcon(QIcon(":/main/resources/images/folder-download.svg"));
+    //if(set)
+    //    ui->requestDownloadButton->setIcon(QIcon(":/main/resources/images/appointment-new.svg"));
+    //else
+    //    ui->requestDownloadButton->setIcon(QIcon(":/main/resources/images/folder-download.svg"));
 }

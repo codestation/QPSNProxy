@@ -225,23 +225,6 @@
            </property>
           </widget>
          </item>
-         <item>
-          <widget class="QPushButton" name="requestDownloadButton">
-           <property name="text">
-            <string/>
-           </property>
-           <property name="icon">
-            <iconset resource="qpsnres.qrc">
-             <normaloff>:/main/resources/images/folder-download.svg</normaloff>:/main/resources/images/folder-download.svg</iconset>
-           </property>
-           <property name="iconSize">
-            <size>
-             <width>32</width>
-             <height>32</height>
-            </size>
-           </property>
-          </widget>
-         </item>
         </layout>
        </item>
        <item>
@@ -254,13 +237,13 @@
          </property>
          <property name="minimumSize">
           <size>
-           <width>200</width>
+           <width>146</width>
            <height>0</height>
           </size>
          </property>
          <property name="maximumSize">
           <size>
-           <width>200</width>
+           <width>146</width>
            <height>16777215</height>
           </size>
          </property>
