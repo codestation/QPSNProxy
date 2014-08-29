@@ -22,6 +22,7 @@
 #include "ui_downloaditem.h"
 #include "utils.h"
 
+#include <QDebug>
 #include <QDir>
 #include <QClipboard>
 #include <QFile>

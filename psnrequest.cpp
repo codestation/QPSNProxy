@@ -21,6 +21,7 @@
 #include "psnrequest.h"
 #include "json.h"
 
+#include <QDebug>
 #include <QDir>
 #include <QNetworkRequest>
 #include <QNetworkAccessManager>
