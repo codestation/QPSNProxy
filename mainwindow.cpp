@@ -345,7 +345,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::deleteCookies()
 {
-    QFile::remove(DownloadItem::getPackageDir() + QDir::separator() + QLatin1String("cookies.ini"));
+    QString config_path = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+    QFile::remove(config_path + QDir::separator() + QLatin1String("cookies.ini"));
     updateStatus(tr("Cookies deleted"));
 }
 
@@ -372,7 +373,8 @@ void MainWindow::deletePackages()
 
 void MainWindow::deleteDownloadList()
 {
-    QFile::remove(DownloadItem::getPackageDir() + QDir::separator() + QLatin1String("listing.json"));
+    QString config_path = QStandardPaths::writableLocation(QStandardPaths::DataLocation);
+    QFile::remove(config_path + QDir::separator() + QLatin1String("listing.json"));
     updateStatus(tr("Download list cache deleted"));
 }
 

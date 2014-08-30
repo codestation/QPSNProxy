@@ -48,10 +48,19 @@ QList<TitleInfo> parsePsnJson(const QVariantMap &json)
         if(entitlement["entitlement_type"].toInt() == 2) // PSP/PS3/VITA
         {
             contentId = entitlement["product_id"].toString();
+
+            if(!entitlement.contains("drm_def"))
+                continue;
+
             QMap<QString,QVariant> drm_def = entitlement["drm_def"].toMap();
-            game_name = drm_def["contentName"].toString();
             QVariantList drmContents = drm_def["drmContents"].toList();
             QMap<QString,QVariant> drmContent = drmContents[0].toMap();
+
+            if(drm_def.contains("contentName"))
+                game_name = drm_def["contentName"].toString();
+            else
+                game_name = drmContent["titleName"].toString();
+
             package_size = drmContent["contentSize"].toLongLong();
             package_url = drmContent["contentUrl"].toString();
             qlonglong platformIds = drmContent["platformIds"].toLongLong();
