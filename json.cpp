@@ -25,7 +25,7 @@
 
 QVariantMap json_decode(const QString &jsonStr)
 {
-    QJsonDocument d = QJsonDocument::fromJson(qPrintable(jsonStr));
+    QJsonDocument d = QJsonDocument::fromJson(jsonStr.toUtf8());
     return d.toVariant().toMap();
 }
 
