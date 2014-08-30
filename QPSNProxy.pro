@@ -68,3 +68,8 @@ win32 {
     # avoid alignment issues with newer mingw compiler
     QMAKE_CXXFLAGS += -mno-ms-bitfields
 }
+
+macx {
+    # OS X icon
+    ICON = resources/images/qpsnproxy.icns
+}
