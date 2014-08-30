@@ -14,7 +14,7 @@ ConfigDialog::ConfigDialog(QWidget *parent) :
     QSettings settings;
 
     QString path = settings.value("downloadPath", DownloadItem::getPackageDir()).toString();
-    ui->downloadPathEdit->setText(path);
+    ui->downloadPathEdit->setText(QDir::toNativeSeparators(path));
 
     int port = settings.value("proxyPort", 8888).toInt();
     ui->proxySpinBox->setValue(port);
@@ -37,7 +37,7 @@ ConfigDialog::ConfigDialog(QWidget *parent) :
 void ConfigDialog::accept()
 {
     QSettings settings;
-    settings.setValue("downloadPath", ui->downloadPathEdit->text());
+    settings.setValue("downloadPath", QDir::fromNativeSeparators(ui->downloadPathEdit->text()));
     settings.setValue("proxyPort", ui->proxySpinBox->value());
     settings.setValue("maxTitles", ui->maxTitlesSpinBox->value());
     settings.setValue("maxChecks", ui->maxChecksSpinBox->value());
