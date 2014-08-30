@@ -52,9 +52,19 @@ FORMS    += mainwindow.ui downloaditem.ui \
 RESOURCES += \
     qpsnres.qrc
 
+OTHER_FILES += qpsnproxy.rc
+
 QPSNPROXY_GIT_VERSION=$$system(git describe --tags --always)
 isEmpty(QPSNPROXY_GIT_VERSION) {
     DEFINES += QPSNPROXY_VER=\\\"$$VERSION\\\"
 } else {
     DEFINES += QPSNPROXY_VER=\\\"$$QPSNPROXY_GIT_VERSION\\\"
+}
+
+# Windows config
+win32 {
+    # Windows icon
+    RC_FILE = qpsnproxy.rc
+    # avoid alignment issues with newer mingw compiler
+    QMAKE_CXXFLAGS += -mno-ms-bitfields
 }
