@@ -9,5 +9,6 @@
         <file>resources/images/appointment-new.svg</file>
         <file>resources/images/dialog-ok-apply.svg</file>
         <file>resources/images/folder-download.svg</file>
+        <file>resources/images/psv_icon.svg</file>
     </qresource>
 </RCC>

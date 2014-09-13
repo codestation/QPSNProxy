@@ -19,26 +19,35 @@
  */
 
 #include "authdialog.h"
-#include <QMessageBox>
 #include "ui_authdialog.h"
+
+#include <QMessageBox>
+#include <QSettings>
 
 AuthDialog::AuthDialog(QWidget *parent) :
     QDialog(parent),
     ui(new Ui::AuthDialog)
 {
     ui->setupUi(this);
+
+    ui->usernameEdit->setText(QSettings().value("lastUsername", "").toString());
+
+    if(!ui->usernameEdit->text().isEmpty())
+        ui->passwordEdit->setFocus();
+
     connect(ui->buttonBox, SIGNAL(accepted()), this, SLOT(accept()));
 }
 
 void AuthDialog::accept()
 {
-    if(ui->usernameEdit->text().isEmpty() ||ui->passwordEdit->text().isEmpty())
+    if(ui->usernameEdit->text().isEmpty() || ui->passwordEdit->text().isEmpty())
     {
         QMessageBox msg;
         msg.setText(tr("Username/password shouldn't be empty"));
     }
     else
     {
+        QSettings().setValue("lastUsername", ui->usernameEdit->text());
         QDialog::accept();
     }
 }

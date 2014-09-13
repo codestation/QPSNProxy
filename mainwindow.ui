@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>QPSNProxy</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="qpsnres.qrc">
+    <normaloff>:/main/resources/images/psv_icon.svg</normaloff>:/main/resources/images/psv_icon.svg</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout">
     <item row="0" column="0">
@@ -274,7 +278,7 @@
   </action>
   <action name="actionOptions">
    <property name="text">
-    <string>Options</string>
+    <string>Opt&amp;ions</string>
    </property>
   </action>
  </widget>
@@ -286,6 +290,8 @@
    <header>filterlineedit.h</header>
   </customwidget>
  </customwidgets>
- <resources/>
+ <resources>
+  <include location="qpsnres.qrc"/>
+ </resources>
  <connections/>
 </ui>
